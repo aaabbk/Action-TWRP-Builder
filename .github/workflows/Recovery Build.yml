@@ -14,15 +14,15 @@ on:
       DEVICE_TREE_URL:
         description: 'DEVICE_TREE_URL'
         required: true
-        default: 'https://github.com/TeamWin/android_device_asus_I003D'
+        default: 'https://github.com/aaabbk/trwp-device_realme_neo7'
       DEVICE_TREE_BRANCH:
         description: 'DEVICE_TREE_BRANCH'
         required: true
-        default: 'android-12.1'
+        default: 'twrp-12.1'
       DEVICE_PATH:
         description: 'DEVICE_PATH'
         required: true
-        default: 'device/asus/I003D'
+        default: 'device/oplus/ossi'
       COMMON_TREE_URL:
         description: 'COMMON_TREE_URL (if no common tree, leave blank)'
         required: false
@@ -32,15 +32,15 @@ on:
       DEVICE_NAME:
         description: 'DEVICE_NAME'
         required: true
-        default: 'I003D'
+        default: 'ossi'
       MAKEFILE_NAME:
         description: 'MAKEFILE_NAME'
         required: true
-        default: 'twrp_I003D'
+        default: 'omni_ossi'
       BUILD_TARGET:
         description: 'BUILD_TARGET'
         required: true
-        default: 'recovery'
+        default: 'vendorboot'
 
 jobs:
   build:
@@ -151,6 +151,28 @@ jobs:
       uses: pierotofy/set-swap-space@master
       with:
         swap-size-gb: 12
+
+    - name: Copy DTB file to correct location
+      run: |
+        cd ${{ steps.pwd.outputs.workspace-folder }}
+        
+        # 确保输出目录存在
+        mkdir -p out/target/product/${{ github.event.inputs.DEVICE_NAME }}
+        
+        # 查找并复制dtb.img文件
+        if [ -f "${{ github.event.inputs.DEVICE_PATH }}/prebuilt/dtb.img" ]; then
+          echo "Copying DTB from device tree..."
+          cp "${{ github.event.inputs.DEVICE_PATH }}/prebuilt/dtb.img" "out/target/product/${{ github.event.inputs.DEVICE_NAME }}/"
+        elif [ -f "prebuilt/dtb.img" ]; then
+          echo "Copying DTB from prebuilt directory..."
+          cp "prebuilt/dtb.img" "out/target/product/${{ github.event.inputs.DEVICE_NAME }}/"
+        else
+          echo "Creating dummy dtb.img..."
+          dd if=/dev/zero of="out/target/product/${{ github.event.inputs.DEVICE_NAME }}/dtb.img" bs=1024 count=64
+        fi
+        
+        # 验证文件
+        ls -lh "out/target/product/${{ github.event.inputs.DEVICE_NAME }}/dtb.img"
 
     - name: Building recovery
       run: |
