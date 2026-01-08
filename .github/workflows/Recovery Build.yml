@@ -152,28 +152,6 @@ jobs:
       with:
         swap-size-gb: 12
 
-    - name: Copy DTB file to correct location
-      run: |
-        cd ${{ steps.pwd.outputs.workspace-folder }}
-        
-        # 确保输出目录存在
-        mkdir -p out/target/product/${{ github.event.inputs.DEVICE_NAME }}
-        
-        # 查找并复制dtb.img文件
-        if [ -f "${{ github.event.inputs.DEVICE_PATH }}/prebuilt/dtb.img" ]; then
-          echo "Copying DTB from device tree..."
-          cp "${{ github.event.inputs.DEVICE_PATH }}/prebuilt/dtb.img" "out/target/product/${{ github.event.inputs.DEVICE_NAME }}/"
-        elif [ -f "prebuilt/dtb.img" ]; then
-          echo "Copying DTB from prebuilt directory..."
-          cp "prebuilt/dtb.img" "out/target/product/${{ github.event.inputs.DEVICE_NAME }}/"
-        else
-          echo "Creating dummy dtb.img..."
-          dd if=/dev/zero of="out/target/product/${{ github.event.inputs.DEVICE_NAME }}/dtb.img" bs=1024 count=64
-        fi
-        
-        # 验证文件
-        ls -lh "out/target/product/${{ github.event.inputs.DEVICE_NAME }}/dtb.img"
-
     - name: Building recovery
       run: |
         source build/envsetup.sh
